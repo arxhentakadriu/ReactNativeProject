@@ -16,9 +16,11 @@ type TaskContextValue = {
 const TaskContext = createContext<TaskContextValue | null>(null);
 const TASK_STORAGE_KEY = 'taskmanager.tasks';
 
-function readStoredUserTasks() {
+function readUserTasks() {
   const storedTasks = readStorageValue<Task[]>(TASK_STORAGE_KEY, []);
-  const userTasks = storedTasks.filter((task) => task.source !== 'api' && !task.id.startsWith('api-'));
+  const userTasks = storedTasks.filter(
+    (task) => task.source !== 'api' && !task.id.startsWith('api-'),
+  );
 
   if (userTasks.length !== storedTasks.length) {
     writeStorageValue(TASK_STORAGE_KEY, userTasks);
@@ -28,9 +30,7 @@ function readStoredUserTasks() {
 }
 
 export function TaskProvider({ children }: PropsWithChildren) {
-  const [tasks, setTasks] = useState(readStoredUserTasks);
-  const isLoading = false;
-  const error = null;
+  const [tasks, setTasks] = useState(readUserTasks);
 
   const persistTasks = useCallback((updater: (currentTasks: Task[]) => Task[]) => {
     setTasks((currentTasks) => {
@@ -43,8 +43,8 @@ export function TaskProvider({ children }: PropsWithChildren) {
   const value = useMemo<TaskContextValue>(
     () => ({
       tasks,
-      isLoading,
-      error,
+      isLoading: false,
+      error: null,
       addTask: (draft) => {
         const createdAt = new Date().toISOString();
         const task: Task = {
@@ -53,7 +53,6 @@ export function TaskProvider({ children }: PropsWithChildren) {
           description: draft.description.trim(),
           completed: false,
           createdAt,
-          source: 'user',
         };
         persistTasks((currentTasks) => [task, ...currentTasks]);
       },
@@ -69,7 +68,7 @@ export function TaskProvider({ children }: PropsWithChildren) {
         );
       },
     }),
-    [error, isLoading, persistTasks, tasks],
+    [persistTasks, tasks],
   );
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;

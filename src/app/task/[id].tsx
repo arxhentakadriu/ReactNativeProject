@@ -61,9 +61,6 @@ export default function TaskDetailsScreen() {
                 </View>
               </View>
               <ThemedText selectable>{task.description}</ThemedText>
-              <ThemedText selectable type="small" themeColor="textSecondary">
-                Source: {task.source === 'api' ? 'Public API seed data' : 'Created on device'}
-              </ThemedText>
             </View>
 
             <View style={styles.actions}>

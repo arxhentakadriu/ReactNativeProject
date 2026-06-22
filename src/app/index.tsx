@@ -12,7 +12,7 @@ import { fetchAdvice } from '@/services/advice-api';
 
 export default function TaskListScreen() {
   const theme = useTheme();
-  const { addTask, deleteTask, error, isLoading, tasks, toggleTask } = useTasks();
+  const { addTask, deleteTask, isLoading, tasks, toggleTask } = useTasks();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<TaskFilter>('all');
   const [tip, setTip] = useState('Keep your task list small and clear.');
@@ -95,8 +95,6 @@ export default function TaskListScreen() {
         </View>
 
         {isLoading ? <EmptyState title="Loading tasks" message="Reading saved tasks." /> : null}
-
-        {error ? <EmptyState title="Storage unavailable" message={error} /> : null}
 
         {!isLoading && !filteredTasks.length ? (
           <EmptyState
