@@ -70,8 +70,8 @@ Basic input validation prevents saving invalid tasks. The title must be at least
 
 Bonus features: search tasks by title and filter the list by All, Active, or Done status.
 
- 5. Empty state
+ 5. Empty Space
 
-![Empty state](./docs/screenshots/05-EmpyState.png)
+![Empty state](./docs/screenshots/05-EmpySpace.png)
 
 When no tasks match the current filters, or when the list is empty after the user deletes everything, the app shows a helpful empty state instead of a blank screen.
