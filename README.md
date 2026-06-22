@@ -72,6 +72,6 @@ Bonus features: search tasks by title and filter the list by All, Active, or Don
 
  5. Empty Space
 
-![Empty state](./docs/screenshots/05-EmpySpace.png)
+![Empty state](./docs/screenshots/05-EmptySpace.png)
 
 When no tasks match the current filters, or when the list is empty after the user deletes everything, the app shows a helpful empty state instead of a blank screen.
