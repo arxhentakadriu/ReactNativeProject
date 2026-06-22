@@ -1,98 +1,184 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useEffect, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
+import { FilterTabs, TaskFilter } from '@/components/filter-tabs';
+import { TaskCard } from '@/components/task-card';
+import { TaskForm } from '@/components/task-form';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTasks } from '@/context/task-context';
+import { useTheme } from '@/hooks/use-theme';
+import { fetchAdvice } from '@/services/advice-api';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+export default function TaskListScreen() {
+  const theme = useTheme();
+  const { addTask, deleteTask, error, isLoading, tasks, toggleTask } = useTasks();
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<TaskFilter>('all');
+  const [tip, setTip] = useState('Keep your task list small and clear.');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    fetchAdvice()
+      .then((advice) => {
+        if (isMounted) {
+          setTip(advice);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setTip('Keep your task list small and clear.');
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredTasks = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    return tasks.filter((task) => {
+      const matchesQuery = task.title.toLowerCase().includes(normalizedQuery);
+      const matchesFilter =
+        filter === 'all' ||
+        (filter === 'active' && !task.completed) ||
+        (filter === 'completed' && task.completed);
+
+      return matchesQuery && matchesFilter;
+    });
+  }, [filter, query, tasks]);
+
+  const completedCount = tasks.filter((task) => task.completed).length;
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      style={[styles.scrollView, { backgroundColor: theme.background }]}
+      contentContainerStyle={styles.contentContainer}>
+      <View style={styles.content}>
+        <View style={styles.summary}>
+          <ThemedText type="subtitle">Personal task manager</ThemedText>
+          <ThemedText selectable type="small" themeColor="textSecondary">
+            {tasks.length} total / {completedCount} completed / {tasks.length - completedCount}{' '}
+            active
+          </ThemedText>
+        </View>
+
+        <View style={[styles.tip, { backgroundColor: theme.backgroundElement }]}>
+          <ThemedText selectable type="small" themeColor="textSecondary">
+            Tip from public API: {tip}
+          </ThemedText>
+        </View>
+
+        <TaskForm onSubmit={addTask} />
+
+        <View style={styles.controls}>
+          <TextInput
+            accessibilityLabel="Search tasks by title"
+            placeholder="Search by title"
+            placeholderTextColor={theme.textSecondary}
+            value={query}
+            onChangeText={setQuery}
+            style={[
+              styles.searchInput,
+              {
+                backgroundColor: theme.backgroundElement,
+                borderColor: theme.backgroundSelected,
+                color: theme.text,
+              },
+            ]}
+          />
+          <FilterTabs value={filter} onChange={setFilter} />
+        </View>
+
+        {isLoading ? <EmptyState title="Loading tasks" message="Reading saved tasks." /> : null}
+
+        {error ? <EmptyState title="Storage unavailable" message={error} /> : null}
+
+        {!isLoading && !filteredTasks.length ? (
+          <EmptyState
+            title={tasks.length ? 'No matching tasks' : 'No tasks yet'}
+            message={
+              tasks.length
+                ? 'Try a different search term or status filter.'
+                : 'Add your first task with a title and description.'
+            }
+          />
+        ) : null}
+
+        <View style={styles.list}>
+          {filteredTasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              onDelete={deleteTask}
+              onToggle={toggleTask}
+            />
+          ))}
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
-export default function HomeScreen() {
+type EmptyStateProps = {
+  title: string;
+  message: string;
+};
+
+function EmptyState({ title, message }: EmptyStateProps) {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <View style={styles.emptyState}>
+      <ThemedText selectable type="smallBold">
+        {title}
+      </ThemedText>
+      <ThemedText selectable type="small" themeColor="textSecondary">
+        {message}
+      </ThemedText>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scrollView: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
+  contentContainer: {
     alignItems: 'center',
+    padding: Spacing.three,
+    paddingBottom: Spacing.five,
+  },
+  content: {
     gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
     maxWidth: MaxContentWidth,
+    width: '100%',
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  summary: {
+    gap: Spacing.one,
   },
-  title: {
-    textAlign: 'center',
+  tip: {
+    borderRadius: 8,
+    padding: Spacing.three,
   },
-  code: {
-    textTransform: 'uppercase',
+  controls: {
+    gap: Spacing.two,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
+  searchInput: {
+    borderRadius: 8,
+    borderWidth: 1,
+    fontSize: 16,
+    minHeight: 46,
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  },
+  emptyState: {
+    borderRadius: 8,
+    gap: Spacing.one,
+    padding: Spacing.three,
+  },
+  list: {
+    gap: Spacing.two,
   },
 });
