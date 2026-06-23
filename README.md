@@ -21,12 +21,10 @@ A small Expo React Native app for managing personal tasks.
 
 Install dependencies:
 
-bash
 npm install
 
 Start the development server:
 
-bash
 npx expo start
 
 Then open the app with Expo Go, an Android emulator, an iOS simulator, or the web option from the Expo CLI.
