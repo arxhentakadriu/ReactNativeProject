@@ -56,6 +56,7 @@ export default function TaskListScreen() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
+      keyboardShouldPersistTaps="handled"
       style={[styles.scrollView, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.contentContainer}>
       <View style={styles.content}>

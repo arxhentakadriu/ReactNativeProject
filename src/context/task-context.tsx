@@ -35,7 +35,11 @@ export function TaskProvider({ children }: PropsWithChildren) {
   const persistTasks = useCallback((updater: (currentTasks: Task[]) => Task[]) => {
     setTasks((currentTasks) => {
       const nextTasks = updater(currentTasks);
-      writeStorageValue(TASK_STORAGE_KEY, nextTasks);
+      try {
+        writeStorageValue(TASK_STORAGE_KEY, nextTasks);
+      } catch {
+        // Keep tasks in memory even if local storage is unavailable.
+      }
       return nextTasks;
     });
   }, []);

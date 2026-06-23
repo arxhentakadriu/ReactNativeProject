@@ -1,5 +1,5 @@
-import { FormEvent, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { Keyboard, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -16,22 +16,16 @@ export function TaskForm({ onSubmit }: Props) {
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
 
-  function handleSubmit(event?: FormEvent) {
-    event?.preventDefault();
-
+  function handleSubmit() {
     const nextTitle = title.trim();
     const nextDescription = description.trim();
 
-    if (nextTitle.length < 3) {
-      setError('Title must be at least 3 characters.');
+    if (!nextTitle) {
+      setError('Title is required.');
       return;
     }
 
-    if (nextDescription.length < 5) {
-      setError('Description must be at least 5 characters.');
-      return;
-    }
-
+    Keyboard.dismiss();
     onSubmit({ title: nextTitle, description: nextDescription });
     setTitle('');
     setDescription('');
