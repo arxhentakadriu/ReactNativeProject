@@ -1,8 +1,8 @@
- *TaskManagerApp*
+ *React Native Project*
 
 A small Expo React Native app for managing personal tasks.
 
-*Repository: https://github.com/arxhentakadriu/TaskManagerApp
+*Repository: https://github.com/arxhentakadriu/ReactNativeProject
 
   *What is implemented
 
@@ -24,12 +24,10 @@ Install dependencies:
 bash
 npm install
 
-
 Start the development server:
 
 bash
 npx expo start
-
 
 Then open the app with Expo Go, an Android emulator, an iOS simulator, or the web option from the Expo CLI.
 
@@ -64,7 +62,7 @@ Detail view for a single task showing title, description, created date, and stat
 
 Basic input validation prevents saving invalid tasks. The title must be at least 3 characters and the description at least 5 characters.
 
- 4. Search and filter
+ 4. Search By Title
 
 ![Search and filter](./docs/screenshots/04-SearchByTitle.png)
 
